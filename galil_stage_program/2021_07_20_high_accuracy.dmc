@@ -1,4 +1,7 @@
 #AUTO
+' GitHub Link:
+' https://github.com/harvard-microrobotics/dpss
+'
 ' General usage Instructions:
 '    1. Check your origin by cutting a cross, then adjusting
 '       the crosshair to where the cross was actually cut.
@@ -45,8 +48,8 @@ CB 2 ;' "X-LIMIT" indicator light off
 CB 3 ;' "Y-LIMIT" indicator light off
 '
 ' DEFINE OFFSETS - The Offset between cam view and laser positions
-deltax=872000;'872304;'873394;'869256;'870517;'871154;'872437 ;' 908400
-deltay=6900;'8601;'8336 ;' 9558
+deltax=872016;'872304;'873394;'869256;'870517;'871154;'872437 ;' 908400
+deltay=7018;'8601;'8336 ;' 9558
 '
 '
 #LOOP
