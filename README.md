@@ -4,7 +4,7 @@ All of the important code for the Custom DPSS laser
 ## Galil Stage Program
 The program that actually runs the stage.
 
-###Usage
+### Usage
 1. Check your origin by cutting a cross, then adjusting the crosshair to where the cross was actually cut.
 2. NEW: Press and hold the "Zero Origin" button for 3 seconds to update the offset variables (instead of manually updating them in the code)
 
