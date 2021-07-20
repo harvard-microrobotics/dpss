@@ -20,4 +20,4 @@ _Note: The program assumes the stage is in camera view upon startup. If the stag
 ### Set the program to run on startup
 
 1. Open the Terminal ("Tools" >> "Terminal")
-2. Send the BP Command to "Burn the program". _Note: You only need to do this once if you change the program, but just in case the memory is wiped, now you know how to do it._
+2. Send the `BP` Command to "Burn the program". _Note: You only need to do this once if you change the program, but just in case the memory is wiped, now you know how to do it._
