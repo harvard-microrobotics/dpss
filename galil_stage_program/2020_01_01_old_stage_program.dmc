@@ -114,6 +114,7 @@ IF (oncam=1) ;' If we are in camera view...
   ST;MC;LM XY
   LI (deltax-actx),(deltay-acty)
   LE;BGS
+  MC
   WT 100
   NO Again
   actx=_TPA
@@ -149,6 +150,7 @@ ELSE
     ST;MC;LM XY
     LI -actx,-acty
     LE;BGS
+    MC
     NO Again
     WT 100
     actx=_TPA
