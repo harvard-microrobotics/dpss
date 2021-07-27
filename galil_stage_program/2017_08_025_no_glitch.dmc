@@ -1,0 +1,255 @@
+#AUTO
+' This is also a comment.
+NO So is this.
+MT -2.5,-2,1,1
+CE 0,2
+DP 0,0
+DE 0,0
+curx=0
+cury=0
+SH
+JG 0,0
+BG XY
+DC 2000000,2000000
+AC 2000000,2000000
+oncam=1
+SB 1 ;' "CAM VIEW" indicator light on
+CB 2 ;' "X-LIMIT" indicator light off
+CB 3 ;' "Y-LIMIT" indicator light off
+deltax=872843;'873394;'869256;'870517;'871154;'872437 ;' 908400
+deltay=8809;'8601;'8336 ;' 9558
+'
+#LOOP
+JG ;' Make sure we are in jog mode.
+'Old x centering value (@AN[1]-2.56)
+xangle=(@AN[1]-2.69)/2.38
+'Old y centering value (@AN[1]-2.41)
+yangle=(@AN[2]-2.29)/2.42
+'Old x centering value .05<@ABS[xangle]
+JP#XNOTLOW,.07<@ABS[xangle]
+xangle=0 
+#XNOTLOW
+JP#XNOTHI,0.9>@ABS[xangle]
+xangle=0.9*xangle/@ABS[xangle]
+#XNOTHI
+JGX=((xangle*xangle*xangle*550300)-(xangle*1326))*(1-@IN[8])
+'Old y centering value .05<@ABS[yangle]
+JP#YNOTLOW,.07<@ABS[yangle]
+yangle=0
+#YNOTLOW
+JP#YNOTHI,0.9>@ABS[yangle]
+yangle=0.9*yangle/@ABS[yangle]
+#YNOTHI
+JGY=((yangle*yangle*yangle*550300)-(yangle*1326))*(1-@IN[7])
+JP#LOOP,((@ABS[xangle]>0.1)|(@ABS[yangle]>0.1))
+JP#SETORIG,@IN[6]=0
+JP#HOME,@IN[17]=0
+#PADLOOP
+a3=@AN[3]
+IF (a3<0)
+  a3=0
+ENDIF
+IF (a3>5)
+  a3=5
+ENDIF
+IF (a3<0.68)
+  jogspd=10
+ENDIF
+IF ((a3>=0.68)&(a3<2.54))
+  jogspd=(48.39*a3)-22.9
+ENDIF
+IF (a3>=2.54)
+  jogspd=(26450*a3*a3*a3)-(201500*a3*a3)+(514400*a3)-439916
+ENDIF
+IF (@IN[2]=0)
+  JG 0,jogspd;JP#PADLOOP
+ENDIF
+IF (@IN[3]=0)
+  JG 0,-jogspd;JP#PADLOOP
+ENDIF
+IF (@IN[4]=0)
+  JG -jogspd,0;JP#PADLOOP
+ENDIF
+IF (@IN[5]=0)
+  JG jogspd,0;JP#PADLOOP
+ENDIF
+JP#LOOP,@IN[1]=1
+ST
+MC
+LM XY
+VS 400000;VA 2000000;VD 2000000;
+IF (oncam=1) ;' If we are in camera view...
+  curx=_TPA  ;' Save current position.
+  cury=_TPB
+  NO Move offset amount (considering your current location)
+  NO and overshooting 1mm in both directions on purpose.
+  LI deltax-curx-1000,deltay-cury-1000
+  LE;BGS ;' End input of LI commands, and begin sequence.
+  MC     ;' Wait until movement is complete.
+  WT 100 ;' This delay (in ms) is to allow for settling.
+  NO Next we measure where we are, using the encoders, and
+  NO calculate the required movement to complete the shift.
+  actx=_TPA
+  acty=_TPB
+  VS 40000;VA 400000;VD 400000;
+  ST;MC;LM XY
+  LI (deltax-actx),(deltay-acty)
+  LE;BGS;MC
+  WT 100
+  NO We should be right under the laser, but we will make one
+  NO final correction move to make absolutely sure.
+  actx=_TPA
+  acty=_TPB
+  ST;MC;LM XY
+  LI (deltax-actx),(deltay-acty)
+  LE;BGS
+  MC
+  NO This flag says we are not under the laser.
+  oncam=0
+  NO Darken the "CAM VIEW" light.
+  CB 1
+ELSE
+  NO The sequence below is similar, but moves us from the
+  NO laser view to the camera view.  Same 3-move sequence.
+  IF (oncam=0)
+    curx=_TPA
+    cury=_TPB
+    LI -curx-1000,-cury-1000
+    LE;BGS
+    MC
+    WT 100
+    actx=_TPA
+    acty=_TPB
+    VS 40000;VA 400000;VD 400000;
+    ST;MC;LM XY
+    LI -actx,-acty
+    LE;BGS
+    MC
+    WT 100
+    actx=_TPA
+    acty=_TPB
+    ST;MC;LM XY
+    LI -actx,-acty
+    LE;BGS
+    MC
+    oncam=1
+    SB 1
+  ENDIF
+ENDIF
+JG 0,0
+BG X,Y
+JP#LOOP
+#HOME
+ST
+MC
+LM XY
+VS 400000;VA 2000000;VD 2000000;
+IF (oncam=1)
+  curx=_TPA
+  cury=_TPB
+  LI -curx-1000,-cury-1000
+  LE;BGS
+  MC
+  WT 100
+  actx=_TPA
+  acty=_TPB
+  VS 40000;VA 400000;VD 400000;
+  ST;MC;LM XY
+  LI -actx,-acty
+  LE;BGS
+  MC
+  WT 100
+  actx=_TPA
+  acty=_TPB
+  ST;MC;LM XY
+  LI -actx,-acty
+  LE;BGS
+  MC
+ELSE
+  curx=_TPA
+  cury=_TPB
+  LI -curx-1000+deltax,-cury-1000+deltay
+  LE;BGS
+  MC
+  WT 100
+  actx=_TPA
+  acty=_TPB
+  VS 40000;VA 400000;VD 400000;
+  ST;MC;LM XY
+  LI -actx+deltax,-acty+deltay
+  LE;BGS
+  MC
+  WT 100
+  actx=_TPA
+  acty=_TPB
+  ST;MC;LM XY
+  LI -actx+deltax,-acty+deltay
+  LE;BGS
+  MC
+ENDIF
+JG 0,0
+BG X,Y
+JP#LOOP
+#SETORIG
+ST
+MC
+DP 0,0
+DE 0,0
+IF (oncam=1)
+  DP 0,0
+  DE 0,0
+ELSE
+  DP deltax,deltay
+  DE deltax,deltay
+ENDIF
+bit2=@OUT[2]
+bit3=@OUT[3]
+CB 2;CB 3
+loopnum=0
+#FLASH
+SB 2;SB 3
+WT 50
+CB 2;CB 3
+WT 30
+loopnum=loopnum+1
+JP#FLASH,loopnum<3
+IF bit2=1;SB 2;ENDIF
+IF bit3=1;SB 3;ENDIF
+#WAIT
+JP#WAIT,@IN[6]=0
+JG 0,0
+BG X,Y
+JP#LOOP
+EN
+#LIMSWI
+DC 10000000,10000000
+ST
+MC
+DC 2000000,2000000
+SP 200000,200000
+IF (_LFX=0)
+  NOIMG "+X limit hit!"
+  SB 2
+  PR -50000,0;BGX;MC
+ENDIF
+IF (_LRX=0)
+  NOMG "-X limit hit!"
+  SB 2
+  PR 50000,0;BGX;MC
+ENDIF
+IF (_LFY=0)
+  NOMG "+Y limit hit!"
+  SB 3
+  PR 0,-50000;BGY;MC
+ENDIF
+IF (_LRY=0)
+  NOMG "-Y limit hit!"
+  SB 3
+  PR 0,50000;BGY;MC
+ENDIF
+WT 500
+CB 2
+CB 3
+JG 0,0
+BG XY
+RE
