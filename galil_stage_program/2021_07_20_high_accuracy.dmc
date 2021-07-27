@@ -292,6 +292,18 @@ JP#LOOP
 EN
 '
 '
+#FLASH2
+SB 2;SB 3
+WT 200
+CB 2;CB 3
+WT 200
+loopnum=loopnum+1
+JP#FLASH2,loopnum<3
+IF bit2=1;SB 2;ENDIF
+IF bit3=1;SB 3;ENDIF
+EN
+'
+'
 #SETDEL
 curx=_TPA  ;' Save current position.
 cury=_TPB
@@ -302,6 +314,8 @@ IF (oncam=1) ;' If we are in camera view...
   MG "Delta Offsets Updated:"
   MG deltax
   MG deltay
+  loopnum=0
+  JS#FLASH2
 ELSE
   MG "Move to 'Camera View' to update delta Offsets"
 ENDIF
@@ -316,22 +330,22 @@ MC
 DC 2000000,2000000
 SP 200000,200000
 IF (_LFX=0)
-  NOIMG "+X limit hit!"
+  MG "+X limit hit!"
   SB 2
   PR -50000,0;BGX;MC
 ENDIF
 IF (_LRX=0)
-  NOMG "-X limit hit!"
+  MG "-X limit hit!"
   SB 2
   PR 50000,0;BGX;MC
 ENDIF
 IF (_LFY=0)
-  NOMG "+Y limit hit!"
+  MG "+Y limit hit!"
   SB 3
   PR 0,-50000;BGY;MC
 ENDIF
 IF (_LRY=0)
-  NOMG "-Y limit hit!"
+  MG "-Y limit hit!"
   SB 3
   PR 0,50000;BGY;MC
 ENDIF
