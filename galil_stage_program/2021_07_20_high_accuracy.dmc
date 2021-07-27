@@ -43,6 +43,7 @@ BG XY
 DC 2000000,2000000
 AC 2000000,2000000
 oncam=1
+limithit=0
 SB 1 ;' "CAM VIEW" indicator light on
 CB 2 ;' "X-LIMIT" indicator light off
 CB 3 ;' "Y-LIMIT" indicator light off
@@ -139,6 +140,7 @@ MC     ;' Wait until movement is complete.
 WT 200 ;' This delay (in ms) is to allow for settling.
 NO Next we measure where we are, using the encoders, and
 NO calculate the required movement to complete the shift.
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 VS 40000;VA 200000;VD 200000 ;' Move slower
@@ -146,29 +148,37 @@ ST;MC;LM XY
 LI (deltax-actx+200),(deltay-acty+200)
 LE;BGS;MC
 WT 50
+ENDIF
 NO We should be right under the laser, but we will make one
 NO final correction move to make absolutely sure.
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
 LI (deltax-actx-100),(deltay-acty-100)
 LE;BGS;MC
 WT 20
+ENDIF
 NO Again
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
 LI (deltax-actx+50),(deltay-acty+50)
 LE;BGS;MC
 WT 20
+ENDIF
 NO Again
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
 LI (deltax-actx-20),(deltay-acty-20)
 LE;BGS;MC
 WT 20
+ENDIF
 NO Again
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 VS 10000;VA 200000;VD 200000 ;' Move even slower
@@ -176,6 +186,8 @@ ST;MC;LM XY
 LI (deltax-actx),(deltay-acty)
 LE;BGS;MC
 WT 20
+ENDIF
+limithit=0
 oncam=0 ;' Mark that we are not under the camera
 CB 1    ;' Turn off the "CAM VIEW" light.
 EN
@@ -189,6 +201,7 @@ LI -curx-500,-cury-500
 LE;BGS
 MC
 WT 200
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 VS 40000;VA 200000;VD 200000 ;' Move slower
@@ -196,31 +209,39 @@ ST;MC;LM XY
 LI -actx+200,-acty+200
 LE;BGS;MC
 WT 50
+ENDIF
 NO We should be right under the camera, but we will make one
 NO final correction move to make absolutely sure.
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
 LI -actx-100,-acty-100
 LE;BGS;MC
 WT 20
+ENDIF
 NO We should be right under the camera, but we will make one
 NO final correction move to make absolutely sure.
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
 LI -actx+50,-acty+50
 LE;BGS;MC
 WT 20
+ENDIF
 NO We should be right under the camera, but we will make one
 NO final correction move to make absolutely sure.
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
 LI -actx-20,-acty-20
 LE;BGS;MC
 WT 20
+ENDIF
 NO Again
+IF (limithit=0)
 actx=_TPA
 acty=_TPB
 VS 10000;VA 200000;VD 200000 ;' Move even slower
@@ -228,6 +249,8 @@ ST;MC;LM XY
 LI -actx,-acty
 LE;BGS;MC
 WT 20
+ENDIF
+limithit=0
 oncam=1 ;' Mark that we are under the camera
 SB 1    ;' Turn on the "CAM VIEW" light
 EN
@@ -294,13 +317,27 @@ EN
 '
 #FLASH2
 SB 2;SB 3
-WT 200
+WT 50
 CB 2;CB 3
-WT 200
+WT 50
 loopnum=loopnum+1
-JP#FLASH2,loopnum<3
+JP#FLASH2,loopnum<6
 IF bit2=1;SB 2;ENDIF
 IF bit3=1;SB 3;ENDIF
+WT 300
+EN
+'
+'
+#FLASH3
+SB 2;SB 3
+WT 300
+CB 2;CB 3
+WT 300
+loopnum=loopnum+1
+JP#FLASH3,loopnum<5
+IF bit2=1;SB 2;ENDIF
+IF bit3=1;SB 3;ENDIF
+WT 300
 EN
 '
 '
@@ -318,36 +355,43 @@ IF (oncam=1) ;' If we are in camera view...
   JS#FLASH2
 ELSE
   MG "Move to 'Camera View' to update delta Offsets"
+  loopnum=0
+  JP#FLASH3
 ENDIF
 EN
 '
 '
 '
 #LIMSWI
+limithit=1
+VS 400000;VA 4000000;VD 4000000;
 DC 10000000,10000000
 ST
 MC
 DC 2000000,2000000
 SP 200000,200000
 IF (_LFX=0)
+  MG ""
   MG "+X limit hit!"
+  MG "Were you in laser view when you turned on the box?"
+  MG "Make sure the stage is under the camera when turning on the box."
   SB 2
-  PR -50000,0;BGX;MC
+  PR -70000,0;BGX;MC
 ENDIF
 IF (_LRX=0)
   MG "-X limit hit!"
   SB 2
-  PR 50000,0;BGX;MC
+  PR 70000,0;BGX;MC
 ENDIF
 IF (_LFY=0)
   MG "+Y limit hit!"
   SB 3
-  PR 0,-50000;BGY;MC
+  PR 0,-70000;BGY;MC
 ENDIF
 IF (_LRY=0)
   MG "-Y limit hit!"
   SB 3
-  PR 0,50000;BGY;MC
+  PR 0,70000;BGY;MC
 ENDIF
 WT 500
 CB 2
