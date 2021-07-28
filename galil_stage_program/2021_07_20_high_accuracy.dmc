@@ -44,6 +44,7 @@ DC 2000000,2000000
 AC 2000000,2000000
 oncam=1
 limithit=0
+homing=0
 SB 1 ;' "CAM VIEW" indicator light on
 CB 2 ;' "X-LIMIT" indicator light off
 CB 3 ;' "Y-LIMIT" indicator light off
@@ -187,6 +188,17 @@ LI (deltax-actx),(deltay-acty)
 LE;BGS;MC
 WT 20
 ENDIF
+'
+NO Turning this message off becasue it casues a 5 second
+NO delay when galiltools is not open.
+'IF (limithit=1)
+'  MG ""
+'  MG "STAGE LIMITS HIT:"
+'  MG "Were you in laser view when you turned on the box?"
+'  MG "Make sure the stage is under the camera when turning on the box."
+'  MG "(This will be fixed in the future)"
+'ENDIF
+'
 limithit=0
 oncam=0 ;' Mark that we are not under the camera
 CB 1    ;' Turn off the "CAM VIEW" light.
@@ -250,6 +262,17 @@ LI -actx,-acty
 LE;BGS;MC
 WT 20
 ENDIF
+'
+NO Turning this message off becasue it casues a 5 second
+NO delay when galiltools is not open.
+'IF (limithit=1)
+'  MG ""
+'  MG "STAGE LIMITS HIT:"
+'  MG "Were you in laser view when you turned on the box?"
+'  MG "Make sure the stage is under the camera when turning on the box."
+'  MG "(This will be fixed in the future)"
+'ENDIF
+'
 limithit=0
 oncam=1 ;' Mark that we are under the camera
 SB 1    ;' Turn on the "CAM VIEW" light
@@ -257,8 +280,17 @@ EN
 '
 '
 #HOME
+btntime=TIME
 ST
 MC
+#WAIT2
+JP#WAIT2,@IN[17]=0
+currtime=TIME
+difftime=currtime-btntime
+IF (difftime>=2000)
+  JP#HOMEXY
+ENDIF
+'
 LM XY
 ' If we are in the camera view, move to (0,0)
 IF (oncam=1)
@@ -269,6 +301,25 @@ ELSE
 ENDIF
 JG 0,0
 BG X,Y
+JP#LOOP
+'
+'
+#HOMEXY
+homing=1
+NO MG "Auto-homing"
+NO JG ;' Make sure we are in jog mode.
+NO JGX=-400000
+NO JGY=0
+JP#LOOP,@IN[17]=0
+JG -400000,0;
+JP#HOMEXY,limithit=0
+MG "X-Axis is homed"
+ST
+MC
+JG 0,0
+BG X,Y
+homing=0
+limithit=0
 JP#LOOP
 '
 '
@@ -299,6 +350,8 @@ loopnum=0
 '
 '
 #FLASH
+bit2=@OUT[2]
+bit3=@OUT[3]
 SB 2;SB 3
 WT 50
 CB 2;CB 3
@@ -316,6 +369,8 @@ EN
 '
 '
 #FLASH2
+bit2=@OUT[2]
+bit3=@OUT[3]
 SB 2;SB 3
 WT 50
 CB 2;CB 3
@@ -329,6 +384,8 @@ EN
 '
 '
 #FLASH3
+bit2=@OUT[2]
+bit3=@OUT[3]
 SB 2;SB 3
 WT 300
 CB 2;CB 3
@@ -336,6 +393,32 @@ WT 300
 loopnum=loopnum+1
 JP#FLASH3,loopnum<5
 IF bit2=1;SB 2;ENDIF
+IF bit3=1;SB 3;ENDIF
+WT 300
+EN
+'
+'
+#FLASHX
+bit2=@OUT[2]
+SB 2
+WT 300
+CB 2
+WT 300
+loopnum=loopnum+1
+JP#FLASHX,loopnum<3
+IF bit2=1;SB 2;ENDIF
+WT 300
+EN
+'
+'
+#FLASHY
+bit3=@OUT[3]
+SB 3
+WT 300
+CB 3
+WT 300
+loopnum=loopnum+1
+JP#FLASHY,loopnum<3
 IF bit3=1;SB 3;ENDIF
 WT 300
 EN
@@ -371,29 +454,42 @@ MC
 DC 2000000,2000000
 SP 200000,200000
 IF (_LFX=0)
-  MG ""
-  MG "+X limit hit!"
-  MG "Were you in laser view when you turned on the box?"
-  MG "Make sure the stage is under the camera when turning on the box."
+  NO MG "+X limit hit!"
   SB 2
   PR -70000,0;BGX;MC
+  IF(homing=0)
+    loopnum=0
+    JS#FLASHX
+  ENDIF
 ENDIF
 IF (_LRX=0)
-  MG "-X limit hit!"
+  NO MG "-X limit hit!"
   SB 2
   PR 70000,0;BGX;MC
+  IF(homing=0)
+    loopnum=0
+    JS#FLASHX
+  ENDIF
 ENDIF
 IF (_LFY=0)
-  MG "+Y limit hit!"
+  NO MG "+Y limit hit!"
   SB 3
   PR 0,-70000;BGY;MC
+  IF(homing=0)
+    loopnum=0
+    JS#FLASHY
+  ENDIF
 ENDIF
 IF (_LRY=0)
-  MG "-Y limit hit!"
+  NO MG "-Y limit hit!"
   SB 3
   PR 0,70000;BGY;MC
+  IF(homing=0)
+    loopnum=0
+    JS#FLASHY
+  ENDIF
 ENDIF
-WT 500
+WT 100
 CB 2
 CB 3
 JG 0,0
