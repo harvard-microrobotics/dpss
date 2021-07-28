@@ -52,6 +52,7 @@ CB 3 ;' "Y-LIMIT" indicator light off
 ' DEFINE OFFSETS - The Offset between cam view and laser positions
 deltax=872016;'872304;'873394;'869256;'870517;'871154;'872437 ;' 908400
 deltay=7018;'8601;'8336 ;' 9558
+xcamhome=-436451
 '
 '
 #LOOP
@@ -310,16 +311,23 @@ NO MG "Auto-homing"
 NO JG ;' Make sure we are in jog mode.
 NO JGX=-400000
 NO JGY=0
+JG
 JP#LOOP,@IN[17]=0
 JG -400000,0;
+BG X,Y
 JP#HOMEXY,limithit=0
 MG "X-Axis is homed"
 ST
 MC
-JG 0,0
-BG X,Y
+LM XY
+cury=_TPB
+DP xcamhome,0
+DE xcamhome,0
+JS#HOMECAM
 homing=0
 limithit=0
+JG 0,0
+BG X,Y
 JP#LOOP
 '
 '
