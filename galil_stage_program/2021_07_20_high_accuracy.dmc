@@ -144,7 +144,7 @@ curx=_TPA  ;' Save current position.
 cury=_TPB
 NO Move offset amount (considering your current location)
 NO and overshooting 1mm in both directions on purpose.
-LI deltax-currposx-curx-500,deltay-currposy-cury-500
+LI deltax+currposx-curx-500,deltay+currposy-cury-500
 LE;BGS ;' End input of LI commands, and begin sequence.
 MC     ;' Wait until movement is complete.
 WT 200 ;' This delay (in ms) is to allow for settling.
@@ -155,7 +155,7 @@ actx=_TPA
 acty=_TPB
 VS 40000;VA 200000;VD 200000 ;' Move slower
 ST;MC;LM XY
-LI (deltax-currposx-actx+200),(deltay-currposy-acty+200)
+LI (deltax+currposx-actx+200),(deltay+currposy-acty+200)
 LE;BGS;MC
 WT 50
 ENDIF
@@ -165,7 +165,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (deltax-currposx-actx-100),(deltay-currposy-acty-100)
+LI (deltax+currposx-actx-100),(deltay+currposy-acty-100)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -174,7 +174,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (deltax-currposx-actx+50),(deltay-currposy-acty+50)
+LI (deltax+currposx-actx+50),(deltay+currposy-acty+50)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -183,7 +183,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (deltax-currposx-actx-20),(deltay-currposy-acty-20)
+LI (deltax+currposx-actx-20),(deltay+currposy-acty-20)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -193,7 +193,7 @@ actx=_TPA
 acty=_TPB
 VS 10000;VA 200000;VD 200000 ;' Move even slower
 ST;MC;LM XY
-LI (deltax-currposx-actx),(deltay-currposy-acty)
+LI (deltax+currposx-actx),(deltay+currposy-acty)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -218,7 +218,7 @@ EN
 VS 400000;VA 1000000;VD 1000000;
 curx=_TPA
 cury=_TPB
-LI -currposx-curx-500,-currposy-cury-500
+LI currposx-curx-500,currposy-cury-500
 LE;BGS
 MC
 WT 200
@@ -227,7 +227,7 @@ actx=_TPA
 acty=_TPB
 VS 40000;VA 200000;VD 200000 ;' Move slower
 ST;MC;LM XY
-LI -currposx-actx+200,-currposy-acty+200
+LI currposx-actx+200,currposy-acty+200
 LE;BGS;MC
 WT 50
 ENDIF
@@ -237,7 +237,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI -currposx-actx-100,-currposy-acty-100
+LI currposx-actx-100,currposy-acty-100
 LE;BGS;MC
 WT 20
 ENDIF
@@ -247,7 +247,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI -currposx-actx+50,-currposy-acty+50
+LI currposx-actx+50,currposy-acty+50
 LE;BGS;MC
 WT 20
 ENDIF
@@ -257,7 +257,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI -currposx-actx-20,-currposy-acty-20
+LI currposx-actx-20,currposy-acty-20
 LE;BGS;MC
 WT 20
 ENDIF
@@ -267,7 +267,7 @@ actx=_TPA
 acty=_TPB
 VS 10000;VA 200000;VD 200000 ;' Move even slower
 ST;MC;LM XY
-LI -currposx-actx,-currposy-acty
+LI currposx-actx,currposy-acty
 LE;BGS;MC
 WT 20
 ENDIF
