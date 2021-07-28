@@ -47,6 +47,8 @@ AC 2000000,2000000
 oncam=1
 limithit=0
 homing=0
+currposx=0
+currposy=0
 SB 1 ;' "CAM VIEW" indicator light on
 CB 2 ;' "X-LIMIT" indicator light off
 CB 3 ;' "Y-LIMIT" indicator light off
@@ -54,7 +56,7 @@ CB 3 ;' "Y-LIMIT" indicator light off
 ' DEFINE OFFSETS - The Offset between cam view and laser positions
 deltax=872016;'872304;'873394;'869256;'870517;'871154;'872437 ;' 908400
 deltay=7018;'8601;'8336 ;' 9558
-xcamhome=-436451
+xcamhome=-436500
 '
 '
 #LOOP
@@ -119,11 +121,15 @@ MC
 LM XY
 ' If we are in the camera view, 
 IF (oncam=1) ;' If we are in camera view...
+  currposx=_TPA
+  currposy=_TPB
   JS#HOMELAS
 ELSE
   NO The sequence below is similar, but moves us from the
   NO laser view to the camera view.  Same 3-move sequence.
   IF (oncam=0)
+    currposx=_TPA-deltax
+    currposy=_TPB-deltay
     JS#HOMECAM
   ENDIF
 ENDIF
@@ -138,7 +144,7 @@ curx=_TPA  ;' Save current position.
 cury=_TPB
 NO Move offset amount (considering your current location)
 NO and overshooting 1mm in both directions on purpose.
-LI deltax-curx-500,deltay-cury-500
+LI deltax-currposx-curx-500,deltay-currposy-cury-500
 LE;BGS ;' End input of LI commands, and begin sequence.
 MC     ;' Wait until movement is complete.
 WT 200 ;' This delay (in ms) is to allow for settling.
@@ -149,7 +155,7 @@ actx=_TPA
 acty=_TPB
 VS 40000;VA 200000;VD 200000 ;' Move slower
 ST;MC;LM XY
-LI (deltax-actx+200),(deltay-acty+200)
+LI (deltax-currposx-actx+200),(deltay-currposy-acty+200)
 LE;BGS;MC
 WT 50
 ENDIF
@@ -159,7 +165,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (deltax-actx-100),(deltay-acty-100)
+LI (deltax-currposx-actx-100),(deltay-currposy-acty-100)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -168,7 +174,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (deltax-actx+50),(deltay-acty+50)
+LI (deltax-currposx-actx+50),(deltay-currposy-acty+50)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -177,7 +183,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (deltax-actx-20),(deltay-acty-20)
+LI (deltax-currposx-actx-20),(deltay-currposy-acty-20)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -187,7 +193,7 @@ actx=_TPA
 acty=_TPB
 VS 10000;VA 200000;VD 200000 ;' Move even slower
 ST;MC;LM XY
-LI (deltax-actx),(deltay-acty)
+LI (deltax-currposx-actx),(deltay-currposy-acty)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -212,7 +218,7 @@ EN
 VS 400000;VA 1000000;VD 1000000;
 curx=_TPA
 cury=_TPB
-LI -curx-500,-cury-500
+LI -currposx-curx-500,-currposy-cury-500
 LE;BGS
 MC
 WT 200
@@ -221,7 +227,7 @@ actx=_TPA
 acty=_TPB
 VS 40000;VA 200000;VD 200000 ;' Move slower
 ST;MC;LM XY
-LI -actx+200,-acty+200
+LI -currposx-actx+200,-currposy-acty+200
 LE;BGS;MC
 WT 50
 ENDIF
@@ -231,7 +237,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI -actx-100,-acty-100
+LI -currposx-actx-100,-currposy-acty-100
 LE;BGS;MC
 WT 20
 ENDIF
@@ -241,7 +247,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI -actx+50,-acty+50
+LI -currposx-actx+50,-currposy-acty+50
 LE;BGS;MC
 WT 20
 ENDIF
@@ -251,7 +257,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI -actx-20,-acty-20
+LI -currposx-actx-20,-currposy-acty-20
 LE;BGS;MC
 WT 20
 ENDIF
@@ -261,7 +267,7 @@ actx=_TPA
 acty=_TPB
 VS 10000;VA 200000;VD 200000 ;' Move even slower
 ST;MC;LM XY
-LI -actx,-acty
+LI -currposx-actx,-currposy-acty
 LE;BGS;MC
 WT 20
 ENDIF
@@ -296,6 +302,8 @@ ENDIF
 '
 LM XY
 ' If we are in the camera view, move to (0,0)
+currposx=0
+currposy=0
 IF (oncam=1)
   JS#HOMECAM
 ' Otherwise, if we are in the laser view, move to (deltax, deltay)
@@ -309,11 +317,7 @@ JP#LOOP
 '
 #HOMEXY
 homing=1
-NO MG "Auto-homing"
-NO JG ;' Make sure we are in jog mode.
-NO JGX=-400000
-NO JGY=0
-JG
+JG ;' Make sure we are in jog mode.
 JP#LOOP,@IN[17]=0
 JG -400000,0;
 BG X,Y
