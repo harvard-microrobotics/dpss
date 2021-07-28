@@ -5,10 +5,7 @@ All of the important code for the Custom DPSS laser
 The program that actually runs the stage.
 
 ### Usage
-1. Check your origin by cutting a cross, then adjusting the crosshair to where the cross was actually cut.
-2. NEW: Press and hold the "Zero Origin" button for 3 seconds to update the offset variables (instead of manually updating them in the code)
-
-_Note: The program assumes the stage is in camera view upon startup. If the stage was unable to move before, jog it over to the camera position and zero it._
+Check out the DPSS Quick Start Guide on the internal lab wiki for details.
 
 ### Flash the program to the motion controller
 
