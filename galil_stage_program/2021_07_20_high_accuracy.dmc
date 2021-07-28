@@ -3,6 +3,8 @@
 ' https://github.com/harvard-microrobotics/dpss
 '
 ' General usage Instructions:
+'    0. Home the x-axis: Press and hold "Home Stage" for 3 seconds.
+'       (This makes sure you are in camera view)
 '    1. Check your origin by cutting a cross, then adjusting
 '       the crosshair to where the cross was actually cut.
 '    2. NEW: Press and hold the "Zero Origin" button for
