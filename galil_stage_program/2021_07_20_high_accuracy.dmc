@@ -349,6 +349,7 @@ LM XY
 ' If we are in the camera view, move to (0,0)
 currposx=0
 currposy=0
+usermotion=0
 IF (oncam=1)
   JS#HOMECAM
 ' Otherwise, if we are in the laser view, move to (deltax, deltay)
@@ -377,6 +378,7 @@ DE xcamhome,0
 JS#HOMECAM
 homing=0
 limithit=0
+usermotion=0
 JG 0,0
 BG X,Y
 JP#LOOP
@@ -405,6 +407,7 @@ ENDIF
 bit2=@OUT[2]
 bit3=@OUT[3]
 CB 2;CB 3
+usermotion=0
 loopnum=0
 '
 '
