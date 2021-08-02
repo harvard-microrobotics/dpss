@@ -47,6 +47,9 @@ AC 2000000,2000000
 oncam=1
 limithit=0
 homing=0
+usermotion=0
+xjoy=0
+yjoy=0
 currposx=0
 currposy=0
 SB 1 ;' "CAM VIEW" indicator light on
@@ -67,20 +70,50 @@ xangle=(@AN[1]-2.69)/2.38
 yangle=(@AN[2]-2.29)/2.42
 'Old x centering value .05<@ABS[xangle]
 JP#XNOTLOW,.07<@ABS[xangle]
-xangle=0 
+IF (07>@ABS[xangle])
+  xangle=0
+ELSE
+  xjoy=1
+  JP#XNOTLOW
+ENDIF
 #XNOTLOW
-JP#XNOTHI,0.9>@ABS[xangle]
-xangle=0.9*xangle/@ABS[xangle]
+IF (0.9<@ABS[xangle])
+  xangle=0.9*xangle/@ABS[xangle]
+ELSE
+  JP#XNOTHI
+ENDIF
 #XNOTHI
-JGX=((xangle*xangle*xangle*550300)-(xangle*1326))*(1-@IN[8])
+' If the x-axis joystick is turned on, set the x-jog
+IF (@IN[8]=0)
+  JGX=((xangle*xangle*xangle*550300)-(xangle*1326))
+ELSE
+  xjoy=0
+  JGX=0
+ENDIF
 'Old y centering value .05<@ABS[yangle]
-JP#YNOTLOW,.07<@ABS[yangle]
-yangle=0
+IF (.07>@ABS[yangle])
+  yangle=0
+ELSE
+  yjoy=1
+  JP#YNOTLOW
+ENDIF
 #YNOTLOW
-JP#YNOTHI,0.9>@ABS[yangle]
-yangle=0.9*yangle/@ABS[yangle]
+IF (0.9<@ABS[yangle])
+  yangle=0.9*yangle/@ABS[yangle]
+ELSE
+  JP#YNOTHI
+ENDIF
 #YNOTHI
-JGY=((yangle*yangle*yangle*550300)-(yangle*1326))*(1-@IN[7])
+' If the y-axis joystick is turned on, set the y-jog
+IF (@IN[7]=0)
+  JGY=((yangle*yangle*yangle*550300)-(yangle*1326))
+ELSE
+  yjoy=0
+  JGY=0
+ENDIF
+IF ((xjoy=1)|(yjoy=1))
+  usermotion=1
+ENDIF
 JP#LOOP,((@ABS[xangle]>0.1)|(@ABS[yangle]>0.1))
 JP#SETORIG,@IN[6]=0
 JP#HOME,@IN[17]=0
@@ -103,6 +136,10 @@ ENDIF
 IF (a3>=2.54)
   jogspd=(26450*a3*a3*a3)-(201500*a3*a3)+(514400*a3)-439916
 ENDIF
+'If we are pressing a button, marks this
+IF ((@IN[2]=0)|(@IN[3]=0)|(@IN[4]=0)|(@IN[5]=0))
+usermotion=1
+ENDIF
 IF (@IN[2]=0)
   JG 0,jogspd;JP#PADLOOP
 ENDIF
@@ -115,21 +152,27 @@ ENDIF
 IF (@IN[5]=0)
   JG jogspd,0;JP#PADLOOP
 ENDIF
+' If the origin shift button is not pressed, go back to loop
 JP#LOOP,@IN[1]=1
 ST
 MC
-LM XY
-' If we are in the camera view, 
-IF (oncam=1) ;' If we are in camera view...
-  currposx=_TPA
-  currposy=_TPB
-  JS#HOMELAS
-ELSE
-  NO The sequence below is similar, but moves us from the
-  NO laser view to the camera view.  Same 3-move sequence.
-  IF (oncam=0)
+' If the user moved the stage, measure the current position
+IF (usermotion=1)
+    ' If we are in the camera view, set the current offest position
+  IF (oncam=1)
+    currposx=_TPA
+    currposy=_TPB
+  ELSE ;' If we are in the laser view, set the current offest position wrt the laser offset
     currposx=_TPA-deltax
     currposy=_TPB-deltay
+  ENDIF
+  usermotion=0 ;' Reset the usermotion flag
+ENDIF
+' If we are in the camera view, origin shift to laser view
+IF (oncam=1)
+   JS#HOMELAS
+ELSE ;' If we are in the laser view, origin shift to camera view
+  IF (oncam=0)
     JS#HOMECAM
   ENDIF
 ENDIF
@@ -139,6 +182,7 @@ JP#LOOP
 '
 '
 #HOMELAS
+LM XY
 VS 400000;VA 1000000;VD 1000000;
 curx=_TPA  ;' Save current position.
 cury=_TPB
@@ -215,6 +259,7 @@ EN
 '
 '
 #HOMECAM
+LM XY
 VS 400000;VA 1000000;VD 1000000;
 curx=_TPA
 cury=_TPB
