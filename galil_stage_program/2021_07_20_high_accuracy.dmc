@@ -271,6 +271,11 @@ LI (homedeltax+currposx-actx),(homedeltay+currposy-acty)
 LE;BGS;MC
 WT 20
 ENDIF
+' If the endstop is hit, flash all the lights
+IF (limithit=1)
+  JS#FLASHALL
+ENDIF
+limithit=0
 '
 NO Turning this message off becasue it casues a 5 second
 NO delay when galiltools is not open.
@@ -282,7 +287,6 @@ NO delay when galiltools is not open.
 '  MG "(This will be fixed in the future)"
 'ENDIF
 '
-limithit=0
 EN
 '
 '
@@ -434,6 +438,21 @@ CB 3
 WT 300
 loopnum=loopnum+1
 JP#FLASHY,loopnum<3
+IF bit3=1;SB 3;ENDIF
+WT 300
+EN
+'
+'
+#FLASHALL
+bit2=@OUT[2]
+bit3=@OUT[3]
+SB 1;SB 2;SB 3
+WT 300
+CB 1;CB 2;CB 3
+WT 300
+loopnum=loopnum+1
+JP#FLASHALL,loopnum<5
+IF bit2=1;SB 2;ENDIF
 IF bit3=1;SB 3;ENDIF
 WT 300
 EN
