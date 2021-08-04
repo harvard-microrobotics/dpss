@@ -273,7 +273,7 @@ WT 20
 ENDIF
 ' If the endstop is hit, flash all the lights
 IF (limithit=1)
-  JS#FLASHALL
+  JS#FLASHAL
 ENDIF
 limithit=0
 '
@@ -443,7 +443,7 @@ WT 300
 EN
 '
 '
-#FLASHALL
+#FLASHAL
 bit2=@OUT[2]
 bit3=@OUT[3]
 SB 1;SB 2;SB 3
@@ -451,7 +451,7 @@ WT 300
 CB 1;CB 2;CB 3
 WT 300
 loopnum=loopnum+1
-JP#FLASHALL,loopnum<5
+JP#FLASHAL,loopnum<5
 IF bit2=1;SB 2;ENDIF
 IF bit3=1;SB 3;ENDIF
 WT 300
