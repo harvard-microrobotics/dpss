@@ -273,6 +273,7 @@ WT 20
 ENDIF
 ' If the endstop is hit, flash all the lights
 IF (limithit=1)
+  loopnum=0
   JS#FLASHAL
 ENDIF
 limithit=0
