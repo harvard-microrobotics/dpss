@@ -47,13 +47,13 @@ AC 2000000,2000000
 oncam=1
 limithit=0
 homing=0
-usermotion=0
+usermove=0
 xjoy=0
 yjoy=0
 currposx=0
 currposy=0
-homedeltax=0
-homedeltay=0
+homedx=0
+homedy=0
 SB 1 ;' "CAM VIEW" indicator light on
 CB 2 ;' "X-LIMIT" indicator light off
 CB 3 ;' "Y-LIMIT" indicator light off
@@ -65,8 +65,8 @@ xcamhome=-436500
 '
 '
 ' DEFINE JOYSTICK PARAMS
-joydeadzone = 0.07
-joyhighzone = 0.90
+joydzone = 0.07
+joyhzone = 0.90
 '
 '
 #LOOP
@@ -75,7 +75,7 @@ xangle=(@AN[1]-2.69)/2.38;' Calculate the joystick's x-axis position
 yangle=(@AN[2]-2.29)/2.42;' Calculate the joystick's y-axis position
 '
 ' Check if the x-axis joystick is moved out of the deadzone
-IF (@ABS[xangle]>xdeadzone)
+IF (@ABS[xangle]>joydzone)
   xjoy=1
   JP#XNOTLOW
 ELSE
@@ -84,8 +84,8 @@ ELSE
 ENDIF
 ' Check if the x-axis joystick is pushed past the high-level
 #XNOTLOW
-IF (@ABS[xangle]>joyhighzone)
-  xangle=joyhighzone*xangle/@ABS[xangle]
+IF (@ABS[xangle]>joyhzone)
+  xangle=joyhzone*xangle/@ABS[xangle]
 ELSE
   JP#XNOTHI
 ENDIF
@@ -99,7 +99,7 @@ ELSE
 ENDIF
 '
 ' Check if the y-axis joystick is moved out of the deadzone
-IF (@ABS[yangle]>joydeadzone)
+IF (@ABS[yangle]>joydzone)
   yjoy=1
   JP#YNOTLOW
 ELSE
@@ -108,8 +108,8 @@ ELSE
 ENDIF
 ' Check if the x-axis joystick is pushed past the high-level
 #YNOTLOW
-IF (@ABS[yangle]>joyhighzone)
-  yangle=joyhighzone*yangle/@ABS[yangle]
+IF (@ABS[yangle]>joyhzone)
+  yangle=joyhzone*yangle/@ABS[yangle]
 ELSE
   JP#YNOTHI
 ENDIF
@@ -122,7 +122,7 @@ ELSE
   JGY=0
 ENDIF
 IF ((xjoy=1)|(yjoy=1))
-  usermotion=1
+  usermove=1
 ENDIF
 JP#LOOP,((@ABS[xangle]>0.1)|(@ABS[yangle]>0.1))
 JP#SETORIG,@IN[6]=0
@@ -148,7 +148,7 @@ IF (a3>=2.54)
 ENDIF
 'If we are pressing a button, marks this
 IF ((@IN[2]=0)|(@IN[3]=0)|(@IN[4]=0)|(@IN[5]=0))
-usermotion=1
+usermove=1
 ENDIF
 IF (@IN[2]=0)
   JG 0,jogspd;JP#PADLOOP
@@ -167,16 +167,16 @@ JP#LOOP,@IN[1]=1
 ST
 MC
 ' If the user moved the stage, measure the current position
-IF (usermotion=1)
+IF (usermove=1)
     ' If we are in the camera view, set the current offest position
   IF (oncam=1)
     currposx=_TPA
     currposy=_TPB
-  ELSE ;' If we are in the laser view, set the current offest position wrt the laser offset
+  ELSE ;' If we are in the laser view, set the current offest position
     currposx=_TPA-deltax
     currposy=_TPB-deltay
   ENDIF
-  usermotion=0 ;' Reset the usermotion flag
+  usermove=0 ;' Reset the usermove flag
 ENDIF
 ' If we are in the camera view, origin shift to laser view
 IF (oncam=1)
@@ -193,9 +193,9 @@ JP#LOOP
 '
 ' MOVE TO HOME POSITION IN LASER VIEW
 #HOMELAS
-homedeltax=deltax
-homedeltay=deltay
-JS#HOMEMOVE
+homedx=deltax
+homedy=deltay
+JS#HOMEMOV
 oncam=0 ;' Mark that we are not under the camera
 CB 1    ;' Turn off the "CAM VIEW" light.
 EN
@@ -203,22 +203,22 @@ EN
 '
 ' MOVE TO HOME POSITION IN CAMERA VIEW
 #HOMECAM
-homedeltax=0
-homedeltay=0
-JS#HOMEMOVE
+homedx=0
+homedy=0
+JS#HOMEMOV
 oncam=1 ;' Mark that we are under the camera
 SB 1    ;' Turn on the "CAM VIEW" light
 EN
 '
 '
-#HOMEMOVE
+#HOMEMOV
 LM XY
 VS 400000;VA 1000000;VD 1000000;
 curx=_TPA  ;' Save current position.
 cury=_TPB
 ' Move offset amount (considering your current location)
 ' and overshooting 0.5mm in both directions on purpose.
-LI homedeltax+currposx-curx-500,homedeltay+currposy-cury-500
+LI homedx+currposx-curx-500,homedy+currposy-cury-500
 LE;BGS ;' End input of LI commands, and begin sequence.
 MC     ;' Wait until movement is complete.
 WT 200 ;' This delay (in ms) is to allow for settling.
@@ -229,7 +229,7 @@ actx=_TPA
 acty=_TPB
 VS 40000;VA 200000;VD 200000 ;' Move slower
 ST;MC;LM XY
-LI (homedeltax+currposx-actx+200),(homedeltay+currposy-acty+200)
+LI (homedx+currposx-actx+200),(homedy+currposy-acty+200)
 LE;BGS;MC
 WT 50
 ENDIF
@@ -238,7 +238,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (homedeltax+currposx-actx-100),(homedeltay+currposy-acty-100)
+LI (homedx+currposx-actx-100),(homedy+currposy-acty-100)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -247,7 +247,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (homedeltax+currposx-actx+50),(homedeltay+currposy-acty+50)
+LI (homedx+currposx-actx+50),(homedy+currposy-acty+50)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -256,7 +256,7 @@ IF (limithit=0)
 actx=_TPA
 acty=_TPB
 ST;MC;LM XY
-LI (homedeltax+currposx-actx-20),(homedeltay+currposy-acty-20)
+LI (homedx+currposx-actx-20),(homedy+currposy-acty-20)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -267,7 +267,7 @@ actx=_TPA
 acty=_TPB
 VS 10000;VA 200000;VD 200000 ;' Move even slower
 ST;MC;LM XY
-LI (homedeltax+currposx-actx),(homedeltay+currposy-acty)
+LI (homedx+currposx-actx),(homedy+currposy-acty)
 LE;BGS;MC
 WT 20
 ENDIF
@@ -276,17 +276,6 @@ IF (limithit=1)
   JS#FLASHAL
 ENDIF
 limithit=0
-'
-NO Turning this message off becasue it casues a 5 second
-NO delay when galiltools is not open.
-'IF (limithit=1)
-'  MG ""
-'  MG "STAGE LIMITS HIT:"
-'  MG "Were you in laser view when you turned on the box?"
-'  MG "Make sure the stage is under the camera when turning on the box."
-'  MG "(This will be fixed in the future)"
-'ENDIF
-'
 EN
 '
 '
@@ -306,7 +295,7 @@ LM XY
 ' If we are in the camera view, move to (0,0)
 currposx=0
 currposy=0
-usermotion=0
+usermove=0
 IF (oncam=1)
   JS#HOMECAM
 ' Otherwise, if we are in the laser view, move to (deltax, deltay)
@@ -335,7 +324,7 @@ DE xcamhome,0
 JS#HOMECAM
 homing=0
 limithit=0
-usermotion=0
+usermove=0
 JG 0,0
 BG X,Y
 JP#LOOP
@@ -364,7 +353,7 @@ ENDIF
 bit2=@OUT[2]
 bit3=@OUT[3]
 CB 2;CB 3
-usermotion=0
+usermove=0
 loopnum=0
 '
 '
