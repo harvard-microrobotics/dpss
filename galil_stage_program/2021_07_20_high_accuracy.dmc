@@ -54,6 +54,10 @@ currposx=0
 currposy=0
 homedx=0
 homedy=0
+jogdx=0
+jogdy=0
+setx=0
+sety=0
 SB 1 ;' "CAM VIEW" indicator light on
 CB 2 ;' "X-LIMIT" indicator light off
 CB 3 ;' "Y-LIMIT" indicator light off
@@ -67,6 +71,9 @@ xcamhome=-436500
 ' DEFINE JOYSTICK PARAMS
 joydzone = 0.07
 joyhzone = 0.90
+'
+'
+CI 2 ;'Interrupt when a new character is received on port 2
 '
 '
 #LOOP
@@ -208,6 +215,14 @@ homedy=0
 JS#HOMEMOV
 oncam=1 ;' Mark that we are under the camera
 SB 1    ;' Turn on the "CAM VIEW" light
+EN
+'
+'
+' MOVE TO HOME POSITION IN CAMERA VIEW
+#MOVEDIST
+JS#HOMEMOV
+jogdx=0
+jogdy=0
 EN
 '
 '
@@ -519,3 +534,32 @@ CB 3
 JG 0,0
 BG XY
 RE
+'
+'
+' THIS WILL NEVER RUN BECASUE SERIAL PORT 2 IS NOT CONNECTED TO ANYTHING...
+#COMINT
+message = P2CH{S1}
+message = P2NUM{S1}
+IF (message="X")
+	setx=1
+	sety=0
+ENDIF
+IF (message="Y")
+  setx=0
+  sety=1
+ENDIF
+IF (message="\n")
+  IF (setx=1)
+
+	ENDIF
+	IF (sety=1)
+
+	ENDIF
+	setx=0
+	sety=0
+ENDIF
+
+MG "COMINT:", message; 'print up to 6 characters
+' P2NM may need to be used later
+EN1,1; ' End this subroutine, re-arming trip points that
+' were running and re-enabling the CI mask
