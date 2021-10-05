@@ -265,6 +265,14 @@ ENDIF
 IF (limithit=0)
 actx=_TPA
 acty=_TPB
+MG "DEBUG Positions X:"
+MG homedx
+MG currposx
+MG actx
+MG "DEBUG Positions Y:"
+MG homedy
+MG currposy
+MG acty
 VS 10000;VA 200000;VD 200000 ;' Move even slower
 ST;MC;LM XY
 LI (homedx+currposx-actx),(homedy+currposy-acty)
