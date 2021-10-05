@@ -223,7 +223,7 @@ VS 400000;VA 1000000;VD 1000000;
 overx=-500
 overy=-500
 JS#HOMESTP
-WT 200 ;' This delay (in ms) is to allow for settling.
+WT 50 ;' This delay (in ms) is to allow for settling.
 ' Next we measure where we are again and overshoot by 0.2 mm.
 IF (limithit=0)
 VS 40000;VA 200000;VD 200000 ;' Move slower
@@ -299,7 +299,7 @@ ENDIF
 '
 ' Check if at least one distance is nonzero, then move
 IF (xdist <> 0) | (ydist <> 0)
-  ST;MC; ;' Wait for motion to stop
+  ST;MC ;' Wait for motion to stop
   LM XY ;' Start an XY linear interpolation move
   LI xdist,ydist
   LE;BGS ;' End input of LI commands, and begin sequence.
