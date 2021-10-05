@@ -52,6 +52,8 @@ xjoy=0
 yjoy=0
 currposx=0
 currposy=0
+overx=0
+overy=0
 homedx=0
 homedy=0
 SB 1 ;' "CAM VIEW" indicator light on
@@ -67,6 +69,10 @@ xcamhome=-436500
 ' DEFINE JOYSTICK PARAMS
 joydzone = 0.07
 joyhzone = 0.90
+'
+'
+' DEFINE DEBUG STATE (0=off, 1=on)
+debug=0
 '
 '
 #LOOP
@@ -212,71 +218,48 @@ EN
 '
 '
 #HOMEMOV
-LM XY
+'LM XY
 VS 400000;VA 1000000;VD 1000000;
-curx=_TPA  ;' Save current position.
-cury=_TPB
-' Move offset amount (considering your current location)
-' and overshooting 0.5mm in both directions on purpose.
-LI homedx+currposx-curx-500,homedy+currposy-cury-500
-LE;BGS ;' End input of LI commands, and begin sequence.
-MC     ;' Wait until movement is complete.
+overx=-500
+overy=-500
+JS#HOMESTP
 WT 200 ;' This delay (in ms) is to allow for settling.
-' Next we measure where we are using the encoders, and
-' overshoot by 0.2mm the other direction.
+' Next we measure where we are again and overshoot by 0.2 mm.
 IF (limithit=0)
-actx=_TPA
-acty=_TPB
 VS 40000;VA 200000;VD 200000 ;' Move slower
-ST;MC;LM XY
-LI (homedx+currposx-actx+200),(homedy+currposy-acty+200)
-LE;BGS;MC
+overx=200
+overy=200
+JS#HOMESTP
 WT 50
 ENDIF
 ' Next we measure where we are again and overshoot by 0.1 mm.
 IF (limithit=0)
-actx=_TPA
-acty=_TPB
-ST;MC;LM XY
-LI (homedx+currposx-actx-100),(homedy+currposy-acty-100)
-LE;BGS;MC
+overx=-100
+overy=-100
+JS#HOMESTP
 WT 20
 ENDIF
 ' Next we measure where we are again and overshoot by 0.05 mm.
 IF (limithit=0)
-actx=_TPA
-acty=_TPB
-ST;MC;LM XY
-LI (homedx+currposx-actx+50),(homedy+currposy-acty+50)
-LE;BGS;MC
+overx=50
+overy=50
+JS#HOMESTP
 WT 20
 ENDIF
 ' Next we measure where we are again and overshoot by 0.02 mm.
 IF (limithit=0)
-actx=_TPA
-acty=_TPB
-ST;MC;LM XY
-LI (homedx+currposx-actx-20),(homedy+currposy-acty-20)
-LE;BGS;MC
+overx=-20
+overy=-20
+JS#HOMESTP
 WT 20
 ENDIF
 ' Next we measure where we are again and move slowly to the
 ' actual desired positon.
 IF (limithit=0)
-actx=_TPA
-acty=_TPB
-MG "DEBUG Positions X:"
-MG homedx
-MG currposx
-MG actx
-MG "DEBUG Positions Y:"
-MG homedy
-MG currposy
-MG acty
 VS 10000;VA 200000;VD 200000 ;' Move even slower
-ST;MC;LM XY
-LI (homedx+currposx-actx),(homedy+currposy-acty)
-LE;BGS;MC
+overx=0
+overy=0
+JS#HOMESTP
 WT 20
 ENDIF
 ' If the endstop is hit, flash all the lights
@@ -285,6 +268,43 @@ IF (limithit=1)
   JS#FLASHAL
 ENDIF
 limithit=0
+EN
+'
+'
+' MOVE HOME WITH SOME OFFSET
+#HOMESTP
+MC ;' Wait for motion to stop
+actx=_TPA ;' Save current position.
+acty=_TPB
+' Move offset amount (considering your current location)
+' and overshooting by some small distance on purpose.
+xdist = homedx+currposx-actx+overx
+ydist = homedy+currposy-acty+overy
+'
+IF (debug=1)
+  MG "DEBUG Positions X:"
+  MG homedx
+  MG currposx
+  MG actx
+  MG overx
+  MG xdist
+  MG " "
+  MG "DEBUG Positions Y:"
+  MG homedy
+  MG currposy
+  MG acty
+  MG overy
+  MG ydist
+ENDIF
+'
+' Check if at least one distance is nonzero, then move
+IF (xdist <> 0) | (ydist <> 0)
+  ST;MC; ;' Wait for motion to stop
+  LM XY ;' Start an XY linear interpolation move
+  LI xdist,ydist
+  LE;BGS ;' End input of LI commands, and begin sequence.
+  MC     ;' Wait until movement is complete.
+ENDIF
 EN
 '
 '
