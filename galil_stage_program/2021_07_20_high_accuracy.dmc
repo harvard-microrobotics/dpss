@@ -52,6 +52,10 @@ xjoy=0
 yjoy=0
 currposx=0
 currposy=0
+xdist = 0
+ydist = 0
+snapx=0
+snapy=0
 overx=0
 overy=0
 homedx=0
@@ -156,21 +160,56 @@ ENDIF
 IF (a3>=2.54)
   jogspd=(26450*a3*a3*a3)-(201500*a3*a3)+(514400*a3)-439916
 ENDIF
-'If we are pressing a button, marks this
 IF ((@IN[2]=0)|(@IN[3]=0)|(@IN[4]=0)|(@IN[5]=0))
 usermove=1
 ENDIF
-IF (@IN[2]=0)
-  JG 0,jogspd;JP#PADLOOP
-ENDIF
-IF (@IN[3]=0)
-  JG 0,-jogspd;JP#PADLOOP
-ENDIF
-IF (@IN[4]=0)
-  JG -jogspd,0;JP#PADLOOP
-ENDIF
-IF (@IN[5]=0)
-  JG jogspd,0;JP#PADLOOP
+' If we are in jogsnap mode, run that
+IF (@IN[18]=0)
+  VS 400000
+  IF (@IN[2]=0)
+    xdist=0
+    ydist=10000
+    snapy=snapy+1.0
+    MG snapx, snapy
+    JS#MVPOS
+  ENDIF
+  IF (@IN[3]=0)
+    xdist=0
+    ydist=-10000
+    snapy=snapy-1.0
+    MG snapx, snapy
+    JS#MVPOS
+  ENDIF
+  IF (@IN[4]=0)
+    xdist=-10000
+    ydist=0
+    snapx=snapx-1.0
+    MG snapx, snapy
+    JS#MVPOS
+  ENDIF
+  IF (@IN[5]=0)
+    xdist=10000
+    ydist=0
+    snapx=snapx+1.0
+    MG snapx, snapy
+    JS#MVPOS
+  ENDIF
+  JG 0,0
+  BG X,Y
+ELSE
+  'If we are pressing a button, marks this
+  IF (@IN[2]=0)
+    JG 0,jogspd;JP#PADLOOP
+  ENDIF
+  IF (@IN[3]=0)
+    JG 0,-jogspd;JP#PADLOOP
+  ENDIF
+  IF (@IN[4]=0)
+    JG -jogspd,0;JP#PADLOOP
+  ENDIF
+  IF (@IN[5]=0)
+    JG jogspd,0;JP#PADLOOP
+  ENDIF
 ENDIF
 ' If the origin shift button is not pressed, go back to loop
 JP#LOOP,@IN[1]=1
@@ -314,6 +353,14 @@ IF (debug=1)
   MG overy
   MG ydist
 ENDIF
+JS#MVPOS
+EN
+'
+'
+'
+'===========================================
+#MVPOS
+'   Move home with some distance offset
 '
 ' Check if at least one distance is nonzero, then move
 IF (xdist <> 0) | (ydist <> 0)
@@ -348,6 +395,8 @@ LM XY
 ' If we are in the camera view, move to (0,0)
 currposx=0
 currposy=0
+snapx=0
+snapy=0
 usermove=0
 IF (oncam=1)
   JS#HOMECAM
@@ -400,6 +449,8 @@ JP#LOOP
 '
 currposx=0 ;' Reset the relative position
 currposy=0 ;' Reset the relative position
+snapx=0
+snapy=0
 btntime=TIME
 ST
 MC
