@@ -56,6 +56,8 @@ xdist = 0
 ydist = 0
 snapx=0
 snapy=0
+snapxct = 0
+snapyct = 0
 overx=0
 overy=0
 homedx=0
@@ -170,29 +172,33 @@ IF (@IN[18]=0)
     xdist=0
     ydist=10000
     snapy=snapy+1.0
+    snapyct=snapyct+10000
     MG snapx, snapy
-    JS#MVPOS
+    JS#MVABS
   ENDIF
   IF (@IN[3]=0)
     xdist=0
     ydist=-10000
     snapy=snapy-1.0
+    snapyct=snapyct-10000
     MG snapx, snapy
-    JS#MVPOS
+    JS#MVABS
   ENDIF
   IF (@IN[4]=0)
     xdist=-10000
     ydist=0
     snapx=snapx-1.0
+    snapxct=snapxct-100000
     MG snapx, snapy
-    JS#MVPOS
+    JS#MVABS
   ENDIF
   IF (@IN[5]=0)
     xdist=10000
     ydist=0
     snapx=snapx+1.0
+    snapxct=snapxct+100000
     MG snapx, snapy
-    JS#MVPOS
+    JS#MVABS
   ENDIF
   JG 0,0
   BG X,Y
@@ -353,14 +359,41 @@ IF (debug=1)
   MG overy
   MG ydist
 ENDIF
-JS#MVPOS
+JS#MVREL
 EN
 '
 '
 '
 '===========================================
-#MVPOS
-'   Move home with some distance offset
+#MVREL
+'   Move to a relative position 
+'
+' Check if at least one distance is nonzero, then move
+IF (xdist <> 0) | (ydist <> 0)
+  ST;MC ;' Wait for motion to stop
+  LM XY ;' Start an XY linear interpolation move
+  LI xdist,ydist
+  LE;BGS ;' End input of LI commands, and begin sequence.
+  MC     ;' Wait until movement is complete.
+ENDIF
+EN
+'
+'
+'
+'===========================================
+#MVABS
+'   Move to a absolute position
+'
+actx=_TPA ;' Save current position.
+acty=_TPB
+' Calculate the correct relative distance to move
+xdist = snapxct + currposx - actx
+ydist = snapyct + currposy - acty
+' If we are in laser view, subtract the view offsets
+IF (oncam=0)
+	xdist = xdist - deltax
+	ydist = ydist - deltay
+ENDIF
 '
 ' Check if at least one distance is nonzero, then move
 IF (xdist <> 0) | (ydist <> 0)
@@ -397,6 +430,8 @@ currposx=0
 currposy=0
 snapx=0
 snapy=0
+snapxct=0
+snapyct=0
 usermove=0
 IF (oncam=1)
   JS#HOMECAM
@@ -451,6 +486,8 @@ currposx=0 ;' Reset the relative position
 currposy=0 ;' Reset the relative position
 snapx=0
 snapy=0
+snapxct=0
+snapyct=0
 btntime=TIME
 ST
 MC
