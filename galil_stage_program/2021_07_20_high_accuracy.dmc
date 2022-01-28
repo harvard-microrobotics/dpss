@@ -188,7 +188,7 @@ IF (@IN[18]=0)
     xdist=-10000
     ydist=0
     snapx=snapx-1.0
-    snapxct=snapxct-100000
+    snapxct=snapxct-10000
     MG snapx, snapy
     JS#MVABS
   ENDIF
@@ -196,7 +196,7 @@ IF (@IN[18]=0)
     xdist=10000
     ydist=0
     snapx=snapx+1.0
-    snapxct=snapxct+100000
+    snapxct=snapxct+10000
     MG snapx, snapy
     JS#MVABS
   ENDIF
