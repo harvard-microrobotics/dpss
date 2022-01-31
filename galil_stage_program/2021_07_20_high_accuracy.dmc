@@ -391,8 +391,8 @@ xdist = snapxct + currposx - actx
 ydist = snapyct + currposy - acty
 ' If we are in laser view, subtract the view offsets
 IF (oncam=0)
-	xdist = xdist - deltax
-	ydist = ydist - deltay
+	xdist = xdist + deltax
+	ydist = ydist + deltay
 ENDIF
 '
 ' Check if at least one distance is nonzero, then move
